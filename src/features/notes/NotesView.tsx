@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { PptxHandler } from 'pptx-viewer-core';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
@@ -7,6 +7,41 @@ import styles from './NotesView.module.css';
 
 // Set up pdf.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+
+/* ── Lazy-loaded PDF page using IntersectionObserver ── */
+const LazyPage = memo(({ pageNumber, width, estimatedHeight }: {
+  pageNumber: number; width: number; estimatedHeight: number;
+}) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setIsVisible(true);
+      },
+      { rootMargin: '1500px 0px' } // start loading 1500px before entering viewport
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={ref} style={{ minHeight: isVisible ? undefined : estimatedHeight }}>
+      {isVisible ? (
+        <Page
+          pageNumber={pageNumber}
+          className={styles.pdfPage}
+          width={width}
+          renderTextLayer={false}
+          renderAnnotationLayer={false}
+        />
+      ) : null}
+    </div>
+  );
+});
 
 interface Note {
   id: string;
@@ -486,13 +521,11 @@ export default function NotesView() {
                 }
               >
                 {Array.from(new Array(numPages), (_, index) => (
-                  <Page
+                  <LazyPage
                     key={`page_${index + 1}`}
                     pageNumber={index + 1}
-                    className={styles.pdfPage}
                     width={containerWidth}
-                    renderTextLayer={false}
-                    renderAnnotationLayer={false}
+                    estimatedHeight={containerWidth ? containerWidth * 1.414 : 800}
                   />
                 ))}
               </Document>
