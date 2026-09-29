@@ -1040,6 +1040,10 @@
   border: none;
   border-radius: 0;
   background: #000;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
 }
 
 [data-theme="light"] .pptFullscreen .pdfScrollWrapper {
@@ -1048,6 +1052,9 @@
 
 .pptFullscreen .pdfDocument {
   padding-top: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .pptFullscreen .pptNavBtn {

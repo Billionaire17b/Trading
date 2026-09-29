@@ -175,14 +175,22 @@ export default function NotesView() {
   useEffect(() => {
     const el = pdfScrollRef.current;
     if (!el) return;
-    const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const w = entry.contentRect.width;
-        setContainerWidth(Math.min(w - 32, 800));
-      }
-    });
+    const update = () => {
+      const w = el.clientWidth || el.getBoundingClientRect().width;
+      // In fullscreen, use full width minus padding; otherwise cap at 800px
+      const isFS = !!(document.fullscreenElement || (document as any).webkitFullscreenElement);
+      setContainerWidth(isFS ? w - 32 : Math.min(w - 32, 800));
+    };
+    const observer = new ResizeObserver(update);
     observer.observe(el);
-    return () => observer.disconnect();
+    // Also re-measure on fullscreen change
+    document.addEventListener('fullscreenchange', update);
+    document.addEventListener('webkitfullscreenchange', update);
+    return () => {
+      observer.disconnect();
+      document.removeEventListener('fullscreenchange', update);
+      document.removeEventListener('webkitfullscreenchange', update);
+    };
   }, [activeFile]);
 
   const createNote = () => {
