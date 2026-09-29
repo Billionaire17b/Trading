@@ -38,7 +38,7 @@ const LIBRARY_ITEMS: LibraryItem[] = [
     type: 'folder',
     children: [
       { id: 'ppt1', title: 'MMXM Trader Posts', filename: 'MMXM TRADER POSTS.pptx', fileType: 'ppt' },
-      { id: 'ppt2', title: "The MMXM Trader's 1st Course - Bread & Butter Approach Notes", filename: 'The MMXM Trader\'s 1st Course Bread & Butter Approach Notes.pptx', fileType: 'ppt' },
+      { id: 'ppt2', title: 'MMXM Course PDF', filename: 'MMXM Course PDF.pdf', fileType: 'pdf' },
       { id: 'ppt3', title: 'The X Model Notes', filename: 'The X Model Notes.pptx', fileType: 'ppt' },
     ]
   },
