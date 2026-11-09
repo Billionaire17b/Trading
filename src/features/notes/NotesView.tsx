@@ -99,6 +99,7 @@ const LIBRARY_ITEMS: LibraryItem[] = [
       { id: 'pdf11', title: 'Smooth Edges', filename: 'JunoTrading/Smooth Edges - byJunotrading.pdf', fileType: 'pdf' },
       { id: 'pdf12', title: 'Stat Map Unicorn Juno', filename: 'JunoTrading/Stat-Map-Unicorn-Juno.pdf', fileType: 'pdf' },
       { id: 'pdf13', title: 'Unicorn Model Data Sep 2025', filename: 'JunoTrading/Unicorn_Model_Data_Sep2025.pdf', fileType: 'pdf' },
+      { id: 'pdf27', title: 'Unicorn Model PDF', filename: 'JunoTrading/Unicorn_Model_PDF.pdf', fileType: 'pdf' },
     ]
   },
   {
@@ -142,7 +143,7 @@ function loadNotes(): Note[] {
 }
 
 export default function NotesView() {
-  const [view, setView] = useState<'notes'|'library'>('library');
+  const [view, setView] = useState<'notes' | 'library'>('library');
   const [activeFile, setActiveFile] = useState<FileItem | null>(null);
   const [currentFolder, setCurrentFolder] = useState<FolderItem | null>(null);
   const [numPages, setNumPages] = useState<number>();
@@ -216,7 +217,7 @@ export default function NotesView() {
     );
 
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = window.setTimeout(() => {}, 500);
+    saveTimer.current = window.setTimeout(() => { }, 500);
   };
 
   const deleteNote = () => {
@@ -294,7 +295,7 @@ export default function NotesView() {
           prevSlide();
         }
       }
-      
+
       // Global fullscreen shortcut
       if (e.key === 'f' || e.key === 'F') {
         toggleFullscreen();
@@ -317,7 +318,7 @@ export default function NotesView() {
     const deltaY = touch.clientY - touchStartRef.current.y;
     const absDeltaX = Math.abs(deltaX);
     const absDeltaY = Math.abs(deltaY);
-    
+
     // Only trigger if horizontal swipe is dominant and threshold met
     if (absDeltaX > 50 && absDeltaX > absDeltaY * 1.5) {
       if (deltaX < 0) nextSlide();
@@ -339,7 +340,7 @@ export default function NotesView() {
       try {
         const response = await fetch(encodeURI(`/${file.filename}`));
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        
+
         // Stream-based download with progress tracking
         const contentLength = response.headers.get('content-length');
         const totalBytes = contentLength ? parseInt(contentLength, 10) : 0;
@@ -372,7 +373,7 @@ export default function NotesView() {
           buffer = await response.arrayBuffer();
           setLoadProgress(60);
         }
-        
+
         // Detect if it's a Git LFS pointer instead of a zip archive (PPTX)
         const textBytes = new Uint8Array(buffer.slice(0, 50));
         const headerText = new TextDecoder().decode(textBytes);
@@ -385,7 +386,7 @@ export default function NotesView() {
         const handler = new PptxHandler();
         const data = await handler.load(buffer);
         setLoadProgress(75);
-        
+
         // Extract one image per slide (these PPTs have full-slide picture elements)
         setLoadingStage('Extracting images');
         const images: string[] = [];
@@ -441,14 +442,14 @@ export default function NotesView() {
         <div>
           <h2 className={styles.title}>Trading Hub</h2>
           <div className={styles.tabNav}>
-            <button 
-              className={`${styles.tabBtn} ${view === 'library' ? styles.tabBtnActive : ''}`} 
+            <button
+              className={`${styles.tabBtn} ${view === 'library' ? styles.tabBtnActive : ''}`}
               onClick={() => setView('library')}
             >
               Library
             </button>
-            <button 
-              className={`${styles.tabBtn} ${view === 'notes' ? styles.tabBtnActive : ''}`} 
+            <button
+              className={`${styles.tabBtn} ${view === 'notes' ? styles.tabBtnActive : ''}`}
               onClick={() => setView('notes')}
             >
               My Notes
@@ -461,102 +462,20 @@ export default function NotesView() {
       {view === 'library' ? (
         activeFile ? (
           activeFile.fileType === 'pdf' ? (
-          <div className={`${styles.pdfViewer} ${isFullscreen ? styles.pptFullscreen : ''}`} ref={pdfViewerRef}>
-            <div className={styles.pptTopBar}>
-              <button className={styles.pptBackBtn} onClick={() => { if (isFullscreen) toggleFullscreen(); setActiveFile(null); }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="15 18 9 12 15 6" />
-                </svg>
-                Back
-              </button>
-              <div className={styles.pptSlideTitle}>{activeFile.title}</div>
-              {numPages ? (
-                <div className={styles.pptSlideCounter}>
-                  {currentPdfPage} / {numPages}
-                </div>
-              ) : null}
-              <button className={styles.pptFullscreenBtn} onClick={toggleFullscreen} aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}>
-                {isFullscreen ? (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="4 14 8 14 8 18" />
-                    <polyline points="20 10 16 10 16 6" />
-                    <polyline points="14 4 14 8 18 8" />
-                    <polyline points="10 20 10 16 6 16" />
+            <div className={`${styles.pdfViewer} ${isFullscreen ? styles.pptFullscreen : ''}`} ref={pdfViewerRef}>
+              <div className={styles.pptTopBar}>
+                <button className={styles.pptBackBtn} onClick={() => { if (isFullscreen) toggleFullscreen(); setActiveFile(null); }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="15 18 9 12 15 6" />
                   </svg>
-                ) : (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="15 3 21 3 21 9" />
-                    <polyline points="9 21 3 21 3 15" />
-                    <polyline points="21 3 14 10" />
-                    <polyline points="3 21 10 14" />
-                  </svg>
-                )}
-              </button>
-            </div>
-            <div className={styles.pdfScrollWrapper} ref={pdfScrollRef} onScroll={handlePdfScroll}>
-              <Document
-                file={encodeURI(`/${activeFile.filename}`)}
-                onLoadSuccess={({ numPages }) => setNumPages(numPages)}
-                onLoadProgress={({ loaded, total }) => {
-                  if (total > 0) {
-                    setLoadProgress(Math.round((loaded / total) * 100));
-                  }
-                }}
-                className={styles.pdfDocument}
-                loading={
-                  <div className={styles.pptLoading}>
-                    <div className={styles.pptProgressRing}>
-                      <svg className={styles.pptProgressSvg} viewBox="0 0 120 120">
-                        <defs>
-                          <linearGradient id="pdfProgressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="var(--progress-start)" />
-                            <stop offset="100%" stopColor="var(--progress-end)" />
-                          </linearGradient>
-                        </defs>
-                        <circle className={styles.pptProgressTrack} cx="60" cy="60" r="52" />
-                        <circle
-                          className={styles.pptProgressFill}
-                          cx="60" cy="60" r="52"
-                          stroke="url(#pdfProgressGrad)"
-                          strokeDasharray={`${2 * Math.PI * 52}`}
-                          strokeDashoffset={`${2 * Math.PI * 52 * (1 - loadProgress / 100)}`}
-                        />
-                      </svg>
-                      <div className={styles.pptProgressPercent}>{loadProgress}%</div>
-                    </div>
-                    <div className={styles.pptProgressLabel}>Loading PDF</div>
-                  </div>
-                }
-              >
-                {Array.from(new Array(numPages), (_, index) => (
-                  <LazyPage
-                    key={`page_${index + 1}`}
-                    pageNumber={index + 1}
-                    width={containerWidth}
-                    estimatedHeight={containerWidth ? containerWidth * 1.414 : 800}
-                  />
-                ))}
-              </Document>
-            </div>
-          </div>
-          ) : (
-          <div className={`${styles.pptViewer} ${isFullscreen ? styles.pptFullscreen : ''}`} ref={pptViewerRef}>
-            <div className={styles.pptTopBar}>
-              <button className={styles.pptBackBtn} onClick={() => { if (isFullscreen) toggleFullscreen(); setActiveFile(null); setPptSlideImages([]); setPptError(null); setCurrentSlide(0); }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="15 18 9 12 15 6" />
-                </svg>
-                Back
-              </button>
-              {pptSlideImages.length > 0 && (
+                  Back
+                </button>
                 <div className={styles.pptSlideTitle}>{activeFile.title}</div>
-              )}
-              {pptSlideImages.length > 0 && (
-                <div className={styles.pptSlideCounter}>
-                  {currentSlide + 1} / {pptSlideImages.length}
-                </div>
-              )}
-              {pptSlideImages.length > 0 && (
+                {numPages ? (
+                  <div className={styles.pptSlideCounter}>
+                    {currentPdfPage} / {numPages}
+                  </div>
+                ) : null}
                 <button className={styles.pptFullscreenBtn} onClick={toggleFullscreen} aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}>
                   {isFullscreen ? (
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -574,97 +493,179 @@ export default function NotesView() {
                     </svg>
                   )}
                 </button>
-              )}
-            </div>
-            <div
-              className={styles.pptViewerWrapper}
-              ref={pptContainerRef}
-              onTouchStart={handleTouchStart}
-              onTouchEnd={handleTouchEnd}
-            >
-              {pptLoading ? (
-                <div className={styles.pptLoading}>
-                  <div className={styles.pptProgressRing}>
-                    <svg className={styles.pptProgressSvg} viewBox="0 0 120 120">
-                      <defs>
-                        <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stopColor="var(--progress-start)" />
-                          <stop offset="100%" stopColor="var(--progress-end)" />
-                        </linearGradient>
-                      </defs>
-                      <circle className={styles.pptProgressTrack} cx="60" cy="60" r="52" />
-                      <circle
-                        className={styles.pptProgressFill}
-                        cx="60" cy="60" r="52"
-                        stroke="url(#progressGrad)"
-                        strokeDasharray={`${2 * Math.PI * 52}`}
-                        strokeDashoffset={`${2 * Math.PI * 52 * (1 - loadProgress / 100)}`}
-                      />
-                    </svg>
-                    <div className={styles.pptProgressPercent}>{loadProgress}%</div>
-                  </div>
-                  <div className={styles.pptProgressLabel}>{loadingStage}</div>
-                  <div className={styles.pptProgressSubLabel}>
-                    {loadProgress < 60 ? 'Fetching file...' : loadProgress < 75 ? 'Processing PPTX...' : loadProgress < 98 ? `Slide ${Math.min(Math.ceil((loadProgress - 75) / 23 * (pptSlideImages.length || 1)) + 1, pptSlideImages.length || 1)}...` : 'Almost ready!'}
-                  </div>
-                </div>
-              ) : pptError ? (
-                <div className={styles.pptErrorState}>
-                  <div className={styles.pptErrorIcon}>⚠️</div>
-                  <div className={styles.pptErrorTitle}>Failed to load presentation</div>
-                  <div className={styles.pptErrorMsg}>{pptError}</div>
-                </div>
-              ) : pptSlideImages.length > 0 ? (
-                <>
-                  <div className={styles.pptSlideStage}>
-                    <img
-                      key={`slide_${currentSlide}`}
-                      src={pptSlideImages[currentSlide]}
-                      alt={`Slide ${currentSlide + 1}`}
-                      className={styles.pptSlideImage}
-                      draggable={false}
-                    />
-                  </div>
-                  {/* Navigation arrows - hidden on very small screens, use swipe there */}
-                  <button
-                    className={`${styles.pptNavBtn} ${styles.pptNavPrev}`}
-                    onClick={prevSlide}
-                    disabled={currentSlide === 0}
-                    aria-label="Previous slide"
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="15 18 9 12 15 6" />
-                    </svg>
-                  </button>
-                  <button
-                    className={`${styles.pptNavBtn} ${styles.pptNavNext}`}
-                    onClick={nextSlide}
-                    disabled={currentSlide === pptSlideImages.length - 1}
-                    aria-label="Next slide"
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="9 6 15 12 9 18" />
-                    </svg>
-                  </button>
-                </>
-              ) : (
-                <div className={styles.pptLoading}>No slides found</div>
-              )}
-            </div>
-            {/* Bottom dot navigation for mobile/iPad */}
-            {pptSlideImages.length > 1 && (
-              <div className={styles.pptDotNav}>
-                {pptSlideImages.map((_, i) => (
-                  <button
-                    key={i}
-                    className={`${styles.pptDot} ${i === currentSlide ? styles.pptDotActive : ''}`}
-                    onClick={() => goToSlide(i)}
-                    aria-label={`Go to slide ${i + 1}`}
-                  />
-                ))}
               </div>
-            )}
-          </div>
+              <div className={styles.pdfScrollWrapper} ref={pdfScrollRef} onScroll={handlePdfScroll}>
+                <Document
+                  file={encodeURI(`/${activeFile.filename}`)}
+                  onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+                  onLoadProgress={({ loaded, total }) => {
+                    if (total > 0) {
+                      setLoadProgress(Math.round((loaded / total) * 100));
+                    }
+                  }}
+                  className={styles.pdfDocument}
+                  loading={
+                    <div className={styles.pptLoading}>
+                      <div className={styles.pptProgressRing}>
+                        <svg className={styles.pptProgressSvg} viewBox="0 0 120 120">
+                          <defs>
+                            <linearGradient id="pdfProgressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                              <stop offset="0%" stopColor="var(--progress-start)" />
+                              <stop offset="100%" stopColor="var(--progress-end)" />
+                            </linearGradient>
+                          </defs>
+                          <circle className={styles.pptProgressTrack} cx="60" cy="60" r="52" />
+                          <circle
+                            className={styles.pptProgressFill}
+                            cx="60" cy="60" r="52"
+                            stroke="url(#pdfProgressGrad)"
+                            strokeDasharray={`${2 * Math.PI * 52}`}
+                            strokeDashoffset={`${2 * Math.PI * 52 * (1 - loadProgress / 100)}`}
+                          />
+                        </svg>
+                        <div className={styles.pptProgressPercent}>{loadProgress}%</div>
+                      </div>
+                      <div className={styles.pptProgressLabel}>Loading PDF</div>
+                    </div>
+                  }
+                >
+                  {Array.from(new Array(numPages), (_, index) => (
+                    <LazyPage
+                      key={`page_${index + 1}`}
+                      pageNumber={index + 1}
+                      width={containerWidth}
+                      estimatedHeight={containerWidth ? containerWidth * 1.414 : 800}
+                    />
+                  ))}
+                </Document>
+              </div>
+            </div>
+          ) : (
+            <div className={`${styles.pptViewer} ${isFullscreen ? styles.pptFullscreen : ''}`} ref={pptViewerRef}>
+              <div className={styles.pptTopBar}>
+                <button className={styles.pptBackBtn} onClick={() => { if (isFullscreen) toggleFullscreen(); setActiveFile(null); setPptSlideImages([]); setPptError(null); setCurrentSlide(0); }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="15 18 9 12 15 6" />
+                  </svg>
+                  Back
+                </button>
+                {pptSlideImages.length > 0 && (
+                  <div className={styles.pptSlideTitle}>{activeFile.title}</div>
+                )}
+                {pptSlideImages.length > 0 && (
+                  <div className={styles.pptSlideCounter}>
+                    {currentSlide + 1} / {pptSlideImages.length}
+                  </div>
+                )}
+                {pptSlideImages.length > 0 && (
+                  <button className={styles.pptFullscreenBtn} onClick={toggleFullscreen} aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}>
+                    {isFullscreen ? (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="4 14 8 14 8 18" />
+                        <polyline points="20 10 16 10 16 6" />
+                        <polyline points="14 4 14 8 18 8" />
+                        <polyline points="10 20 10 16 6 16" />
+                      </svg>
+                    ) : (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="15 3 21 3 21 9" />
+                        <polyline points="9 21 3 21 3 15" />
+                        <polyline points="21 3 14 10" />
+                        <polyline points="3 21 10 14" />
+                      </svg>
+                    )}
+                  </button>
+                )}
+              </div>
+              <div
+                className={styles.pptViewerWrapper}
+                ref={pptContainerRef}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+              >
+                {pptLoading ? (
+                  <div className={styles.pptLoading}>
+                    <div className={styles.pptProgressRing}>
+                      <svg className={styles.pptProgressSvg} viewBox="0 0 120 120">
+                        <defs>
+                          <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="var(--progress-start)" />
+                            <stop offset="100%" stopColor="var(--progress-end)" />
+                          </linearGradient>
+                        </defs>
+                        <circle className={styles.pptProgressTrack} cx="60" cy="60" r="52" />
+                        <circle
+                          className={styles.pptProgressFill}
+                          cx="60" cy="60" r="52"
+                          stroke="url(#progressGrad)"
+                          strokeDasharray={`${2 * Math.PI * 52}`}
+                          strokeDashoffset={`${2 * Math.PI * 52 * (1 - loadProgress / 100)}`}
+                        />
+                      </svg>
+                      <div className={styles.pptProgressPercent}>{loadProgress}%</div>
+                    </div>
+                    <div className={styles.pptProgressLabel}>{loadingStage}</div>
+                    <div className={styles.pptProgressSubLabel}>
+                      {loadProgress < 60 ? 'Fetching file...' : loadProgress < 75 ? 'Processing PPTX...' : loadProgress < 98 ? `Slide ${Math.min(Math.ceil((loadProgress - 75) / 23 * (pptSlideImages.length || 1)) + 1, pptSlideImages.length || 1)}...` : 'Almost ready!'}
+                    </div>
+                  </div>
+                ) : pptError ? (
+                  <div className={styles.pptErrorState}>
+                    <div className={styles.pptErrorIcon}>⚠️</div>
+                    <div className={styles.pptErrorTitle}>Failed to load presentation</div>
+                    <div className={styles.pptErrorMsg}>{pptError}</div>
+                  </div>
+                ) : pptSlideImages.length > 0 ? (
+                  <>
+                    <div className={styles.pptSlideStage}>
+                      <img
+                        key={`slide_${currentSlide}`}
+                        src={pptSlideImages[currentSlide]}
+                        alt={`Slide ${currentSlide + 1}`}
+                        className={styles.pptSlideImage}
+                        draggable={false}
+                      />
+                    </div>
+                    {/* Navigation arrows - hidden on very small screens, use swipe there */}
+                    <button
+                      className={`${styles.pptNavBtn} ${styles.pptNavPrev}`}
+                      onClick={prevSlide}
+                      disabled={currentSlide === 0}
+                      aria-label="Previous slide"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="15 18 9 12 15 6" />
+                      </svg>
+                    </button>
+                    <button
+                      className={`${styles.pptNavBtn} ${styles.pptNavNext}`}
+                      onClick={nextSlide}
+                      disabled={currentSlide === pptSlideImages.length - 1}
+                      aria-label="Next slide"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="9 6 15 12 9 18" />
+                      </svg>
+                    </button>
+                  </>
+                ) : (
+                  <div className={styles.pptLoading}>No slides found</div>
+                )}
+              </div>
+              {/* Bottom dot navigation for mobile/iPad */}
+              {pptSlideImages.length > 1 && (
+                <div className={styles.pptDotNav}>
+                  {pptSlideImages.map((_, i) => (
+                    <button
+                      key={i}
+                      className={`${styles.pptDot} ${i === currentSlide ? styles.pptDotActive : ''}`}
+                      onClick={() => goToSlide(i)}
+                      aria-label={`Go to slide ${i + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           )
         ) : currentFolder ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -688,15 +689,15 @@ export default function NotesView() {
         ) : (
           <div className={styles.libraryGrid}>
             {LIBRARY_ITEMS.map((item) => (
-              <div 
-                key={item.id} 
+              <div
+                key={item.id}
                 onClick={() => {
                   if ('type' in item && item.type === 'folder') {
                     setCurrentFolder(item);
                   } else {
                     handleFileOpen(item as FileItem);
                   }
-                }} 
+                }}
                 className={styles.fileCard}
               >
                 <div className={'type' in item && item.type === 'folder' ? styles.folderIcon : 'fileType' in item && item.fileType === 'ppt' ? styles.pptIcon : styles.fileIcon}>
@@ -724,9 +725,8 @@ export default function NotesView() {
                 {notes.map((note) => (
                   <div
                     key={note.id}
-                    className={`${styles.noteItem} ${
-                      note.id === selectedId ? styles.noteItemActive : ''
-                    }`}
+                    className={`${styles.noteItem} ${note.id === selectedId ? styles.noteItemActive : ''
+                      }`}
                     onClick={() => {
                       setSelectedId(note.id);
                       setMobileEditing(true);
