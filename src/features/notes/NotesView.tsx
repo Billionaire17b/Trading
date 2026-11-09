@@ -178,21 +178,22 @@ export default function NotesView() {
     if (!el) return;
     const update = () => {
       const w = el.clientWidth || el.getBoundingClientRect().width;
-      // In fullscreen, use full width minus padding; otherwise cap at 800px
-      const isFS = !!(document.fullscreenElement || (document as any).webkitFullscreenElement);
-      setContainerWidth(isFS ? w - 32 : Math.min(w - 32, 800));
+      // In fullscreen (native or CSS-based), use full width minus padding; otherwise cap at 800px
+      setContainerWidth(isFullscreen ? w - 32 : Math.min(w - 32, 800));
     };
     const observer = new ResizeObserver(update);
     observer.observe(el);
     // Also re-measure on fullscreen change
     document.addEventListener('fullscreenchange', update);
     document.addEventListener('webkitfullscreenchange', update);
+    // Immediately recalculate when isFullscreen changes
+    update();
     return () => {
       observer.disconnect();
       document.removeEventListener('fullscreenchange', update);
       document.removeEventListener('webkitfullscreenchange', update);
     };
-  }, [activeFile]);
+  }, [activeFile, isFullscreen]);
 
   const createNote = () => {
     const note: Note = {
@@ -245,33 +246,56 @@ export default function NotesView() {
   const nextSlide = useCallback(() => goToSlide(currentSlide + 1), [currentSlide, goToSlide]);
   const prevSlide = useCallback(() => goToSlide(currentSlide - 1), [currentSlide, goToSlide]);
 
-  // Fullscreen toggle
+  // Fullscreen toggle – uses native API when available, falls back to
+  // CSS-based "fake fullscreen" for Safari iOS/iPadOS which lacks the API.
   const toggleFullscreen = useCallback(async () => {
     const el = activeFile?.fileType === 'pdf' ? pdfViewerRef.current : pptViewerRef.current;
     if (!el) return;
-    try {
-      if (!document.fullscreenElement && !(document as any).webkitFullscreenElement) {
-        if (el.requestFullscreen) {
-          await el.requestFullscreen();
-        } else if ((el as any).webkitRequestFullscreen) {
-          await (el as any).webkitRequestFullscreen();
-        }
-      } else {
-        if (document.exitFullscreen) {
-          await document.exitFullscreen();
-        } else if ((document as any).webkitExitFullscreen) {
-          await (document as any).webkitExitFullscreen();
+
+    const nativeFullscreenElement = document.fullscreenElement || (document as any).webkitFullscreenElement;
+    const supportsNativeFS = !!(el.requestFullscreen || (el as any).webkitRequestFullscreen);
+
+    if (!isFullscreen) {
+      // Enter fullscreen
+      if (supportsNativeFS) {
+        try {
+          if (el.requestFullscreen) {
+            await el.requestFullscreen();
+          } else if ((el as any).webkitRequestFullscreen) {
+            await (el as any).webkitRequestFullscreen();
+          }
+          // Native API will fire fullscreenchange → state updates there
+          return;
+        } catch {
+          // Native fullscreen failed (e.g. Safari iOS), fall through to CSS
         }
       }
-    } catch (err) {
-      console.warn('Fullscreen not supported:', err);
+      // CSS-based fallback
+      setIsFullscreen(true);
+    } else {
+      // Exit fullscreen
+      if (nativeFullscreenElement) {
+        try {
+          if (document.exitFullscreen) {
+            await document.exitFullscreen();
+          } else if ((document as any).webkitExitFullscreen) {
+            await (document as any).webkitExitFullscreen();
+          }
+          return;
+        } catch {
+          // fall through
+        }
+      }
+      // CSS-based fallback exit
+      setIsFullscreen(false);
     }
-  }, [activeFile?.fileType]);
+  }, [activeFile?.fileType, isFullscreen]);
 
-  // Sync fullscreen state with browser events
+  // Sync fullscreen state with browser events (native API)
   useEffect(() => {
     const handleChange = () => {
-      setIsFullscreen(!!(document.fullscreenElement || (document as any).webkitFullscreenElement));
+      const inNativeFS = !!(document.fullscreenElement || (document as any).webkitFullscreenElement);
+      setIsFullscreen(inNativeFS);
     };
     document.addEventListener('fullscreenchange', handleChange);
     document.addEventListener('webkitfullscreenchange', handleChange);
@@ -280,6 +304,26 @@ export default function NotesView() {
       document.removeEventListener('webkitfullscreenchange', handleChange);
     };
   }, []);
+
+  // Lock body scroll when in CSS-based fullscreen (Safari)
+  useEffect(() => {
+    if (isFullscreen && !document.fullscreenElement && !(document as any).webkitFullscreenElement) {
+      const scrollY = window.scrollY;
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+      return () => {
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        window.scrollTo(0, scrollY);
+      };
+    }
+  }, [isFullscreen]);
 
   // Keyboard navigation for PPT slides + F key for fullscreen
   useEffect(() => {
